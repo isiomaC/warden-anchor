@@ -2,8 +2,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { basename } from "node:path";
 import { createPublicClient, createWalletClient, defineChain, http, keccak256, parseAbi, toHex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import type { AuditEntry } from "@stlw/warden";
-import { commit, verifyAgainstAnchor, type Anchor } from "./verify.ts";
+import { commit, verifyAgainstAnchor, type Anchor, type LogEntry } from "./verify.ts";
 
 const abi = parseAbi([
   "function anchor(bytes32 logId, uint64 entryCount, bytes32 headHash)",
@@ -19,7 +18,11 @@ const chain = defineChain({
   rpcUrls: { default: { http: [rpc] } },
 });
 
-const readLog = (path: string) => JSON.parse(readFileSync(path, "utf8")) as AuditEntry[];
+/** Accepts a bare entry array or the `{ entries }` object that `warden audit --export json` prints. */
+const readLog = (path: string): LogEntry[] => {
+  const raw = JSON.parse(readFileSync(path, "utf8"));
+  return Array.isArray(raw) ? raw : raw.entries;
+};
 
 async function anchor(logPath: string, name = basename(logPath).replace(/\.json$/, "")) {
   const key = process.env.MONAD_PRIVATE_KEY as `0x${string}` | undefined;
