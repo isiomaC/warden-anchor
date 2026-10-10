@@ -33,7 +33,20 @@ All code in this repository is written during the hackathon window.
 
 ## Monad integration
 
-TODO. Contract address, transaction hashes and why Monad.
+`WardenAnchor` is deployed on Monad testnet (chain id 10143).
+
+| Item | Value |
+| --- | --- |
+| Contract | [`0x8494a7486442c17bba53cf6aca4acb12c3057cb0`](https://testnet.monadvision.com/address/0x8494a7486442c17bba53cf6aca4acb12c3057cb0) |
+| Deployment tx | [`0xc8dbdb22...c4043d6`](https://testnet.monadvision.com/tx/0xc8dbdb228231de8ce4d621bbfa1affa7278a583022915f5162c4400c4c4043d6) |
+| Deploy block | 69798973 |
+| Deployer | `0xcefe8d12e6d157905f8cb0e2a8dcf5226f48ae85` |
+
+The contract stores, per publisher and log id, the entry count and head hash of a
+Warden decision log. The count can only increase, so a truncated log cannot replace
+a newer anchor. Why Monad: TODO (to be written with the anchoring demo).
+
+Deployment record: [deployments/monadTestnet.json](deployments/monadTestnet.json).
 
 ## Architecture
 
