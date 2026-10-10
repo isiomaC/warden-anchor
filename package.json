@@ -24,7 +24,8 @@
     "test": "hardhat test",
     "sample-log": "node examples/make-sample-log.ts",
     "anchor": "node --env-file=.env src/cli.ts anchor",
-    "verify": "node src/cli.ts verify"
+    "verify": "node src/cli.ts verify",
+    "demo:tamper": "node src/tamper-demo.ts"
   },
   "allowScripts": {
     "better-sqlite3@12.11.1": true
