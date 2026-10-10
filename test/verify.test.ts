@@ -57,3 +57,33 @@ describe("verifyAgainstAnchor", () => {
     assert.throws(() => commit(broken));
   });
 });
+
+describe("verifyAgainstAnchor on a real Warden ledger export", async () => {
+  const { readFileSync } = await import("node:fs");
+  const raw = JSON.parse(readFileSync(new URL("../examples/ledger-export.json", import.meta.url), "utf8"));
+  const log = raw.entries;
+  const anchor = commit(log);
+
+  it("commits to the ledger head", () => {
+    assert.equal(anchor.entryCount, log.length);
+    assert.equal(anchor.headHash, `0x${log[log.length - 1].hash}`);
+  });
+
+  it("accepts the untouched export", () => {
+    assert.equal(verifyAgainstAnchor(log, anchor).ok, true);
+  });
+
+  it("flags a flipped decision (DENY -> ALLOW) as CHAIN_BROKEN", () => {
+    const edited = structuredClone(log);
+    const i = edited.findIndex((e: { decision: string }) => e.decision === "DENY");
+    assert.ok(i >= 0, "fixture has a DENY");
+    edited[i].decision = "ALLOW";
+    const v = verifyAgainstAnchor(edited, anchor);
+    assert.equal(!v.ok && v.reason, "CHAIN_BROKEN");
+  });
+
+  it("flags a dropped tail as TRUNCATED", () => {
+    const v = verifyAgainstAnchor(log.slice(0, 1), anchor);
+    assert.equal(!v.ok && v.reason, "TRUNCATED");
+  });
+});
