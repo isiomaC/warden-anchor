@@ -8,7 +8,7 @@ const head1 = keccak256(toHex("entry-1"));
 const head2 = keccak256(toHex("entry-2"));
 
 describe("WardenAnchor", async () => {
-  const { viem } = await network.connect();
+  const { viem } = await network.create();
   const [publisher, other] = await viem.getWalletClients();
 
   async function deploy() {
