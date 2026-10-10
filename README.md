@@ -27,8 +27,8 @@ It was published before the hackathon window and is open source under its own re
 All code in this repository is written during the hackathon window.
 
 - Anchor contract on Monad (TODO)
-- Anchoring script for Warden decision logs (TODO)
-- Offline verifier wrapper that detects rewrites and truncation (TODO)
+- Anchoring CLI that commits a Warden decision log's head to the contract (`src/cli.ts anchor`)
+- Offline verifier that detects edits, full re-hash rewrites and truncation (`src/verify.ts`, `src/cli.ts verify`)
 - Live validation against a real Claude Code session (TODO)
 
 ## Monad integration
@@ -58,7 +58,22 @@ Node.js 22+, TypeScript, Solidity, Monad (testnet), `@stlw/warden`.
 
 ## Setup
 
-TODO. Must be runnable by a third party from a clean machine.
+Requires Node.js 22.18 or later (runs TypeScript directly).
+
+```sh
+npm install
+npm test                       # contract and verifier tests, no network needed
+npm run sample-log             # writes examples/decisions.json with Warden's AuditChain
+npm run verify -- examples/decisions.json examples/decisions.anchor.json
+```
+
+`verify` is offline. It checks a log against an anchor record and prints `OK`, or
+`FAIL` with `CHAIN_BROKEN`, `REWRITTEN` or `TRUNCATED`.
+
+To anchor a log yourself, put a funded Monad testnet key in `.env` as
+`MONAD_PRIVATE_KEY=0x...` and run `npm run anchor -- path/to/log.json`. It verifies the
+chain, sends `anchor(...)`, reads the value back from the contract, and writes
+`<log>.anchor.json`. `examples/decisions.anchor.json` is a real record from testnet.
 
 ## AI tooling disclosure
 
