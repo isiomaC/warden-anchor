@@ -1,0 +1,12 @@
+{
+  "name": "warden-anchor",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "Anchor Warden decision logs on Monad so rewrites and truncation are detectable offline.",
+  "engines": { "node": ">=22" },
+  "dependencies": {
+    "@stlw/warden": "0.2.8"
+  }
+}
