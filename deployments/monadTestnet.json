@@ -1,0 +1,9 @@
+{
+  "network": "monadTestnet",
+  "chainId": 10143,
+  "contract": "WardenAnchor",
+  "address": "0x8494a7486442c17bba53cf6aca4acb12c3057cb0",
+  "deployer": "0xcefe8d12e6d157905f8cb0e2a8dcf5226f48ae85",
+  "deployTxHash": "0xc8dbdb228231de8ce4d621bbfa1affa7278a583022915f5162c4400c4c4043d6",
+  "blockNumber": 69798973
+}
