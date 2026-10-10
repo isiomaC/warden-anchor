@@ -9,13 +9,20 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@stlw/warden": "0.2.8"
+    "@stlw/warden": "0.2.8",
+    "viem": "^2.57.4"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.7",
     "@types/node": "^26.6.5",
     "hardhat": "^3.19.0",
-    "typescript": "^7.0.2",
-    "viem": "^2.57.4"
+    "typescript": "^7.0.2"
+  },
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "sample-log": "node examples/make-sample-log.ts",
+    "anchor": "node --env-file=.env src/cli.ts anchor",
+    "verify": "node src/cli.ts verify"
   }
 }
