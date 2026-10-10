@@ -1,0 +1,11 @@
+{
+  "chainId": 10143,
+  "contract": "0x8494a7486442c17bba53cf6aca4acb12c3057cb0",
+  "publisher": "0xCefe8D12e6d157905f8cb0e2A8DCf5226f48AE85",
+  "logName": "claude-code-session",
+  "logId": "0xfc1bc86f6339d0b108e9e5d3917999f3322b0cb7f9db0936e9e79edb54523b48",
+  "entryCount": 2,
+  "headHash": "0x66c865fac45ae07cbdca936ed612fe01e1debcb0e29b3a0936484ecffd14764c",
+  "txHash": "0xb2e49011ef67e27a99a9c659755f75e6be12baffa909974a6f22436bd972dac1",
+  "blockNumber": 69801383
+}
