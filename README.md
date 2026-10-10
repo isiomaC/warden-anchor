@@ -29,7 +29,7 @@ All code in this repository is written during the hackathon window.
 - Anchor contract on Monad (TODO)
 - Anchoring CLI that commits a Warden decision log's head to the contract (`src/cli.ts anchor`)
 - Offline verifier that detects edits, full re-hash rewrites and truncation (`src/verify.ts`, `src/cli.ts verify`)
-- Live validation against a real Claude Code session (TODO)
+- A runnable demo: a real Claude Code session blocked by Warden, its ledger anchored on Monad and verified (`demo/`)
 
 ## Monad integration
 
@@ -50,7 +50,25 @@ Deployment record: [deployments/monadTestnet.json](deployments/monadTestnet.json
 
 ## Architecture
 
-TODO.
+```
+Claude Code ──MCP tool call──> warden proxy ──ALLOW──> upstream MCP server
+                                   │
+                                   └─ every decision ─> hash-chained SQLite ledger
+                                                              │
+                          npm run anchor: verify chain, send anchor(logId, count, head)
+                                                              ▼
+                                              WardenAnchor on Monad testnet
+                                                              │
+                          npm run verify: offline, log + anchor record -> OK / FAIL
+```
+
+Warden governs MCP tool calls that pass through its proxy. Claude Code's own native
+tools are outside that boundary (Warden's documentation says so); the demo removes them
+with `--tools ""` so the MCP path is the only path.
+
+What anchoring adds: the ledger chain alone catches an edited entry, but an attacker who
+rewrites and re-hashes the whole chain, or drops the tail, produces a chain that still
+verifies. The head published on Monad does not move, so both are caught.
 
 ## Tech stack
 
@@ -74,6 +92,22 @@ To anchor a log yourself, put a funded Monad testnet key in `.env` as
 `MONAD_PRIVATE_KEY=0x...` and run `npm run anchor -- path/to/log.json`. It verifies the
 chain, sends `anchor(...)`, reads the value back from the contract, and writes
 `<log>.anchor.json`. `examples/decisions.anchor.json` is a real record from testnet.
+
+Warden stores its ledger in SQLite through `better-sqlite3`, a native module. npm 12
+blocks install scripts by default, so a fresh install fails at runtime with "Could not
+locate the bindings file". `package.json` already allows it; if you install Warden in
+another project run `npm install-scripts approve better-sqlite3 && npm rebuild better-sqlite3`.
+
+## Demo
+
+`demo/run.sh` runs a real non-interactive Claude Code session whose only tools are MCP
+tools routed through `warden proxy` (policy in `demo/warden.config.yml`: reads allowed,
+writes denied). It then exports the ledger, anchors it on Monad testnet and verifies it
+offline. Recorded output of one run is in `demo/`:
+
+- `session-result.md`: what Claude reported (read allowed, write denied by `deny-writes`)
+- `ledger.json`: the exported two entry ledger
+- `ledger.anchor.json`: the anchor record (contract, tx hash, block)
 
 ## AI tooling disclosure
 
