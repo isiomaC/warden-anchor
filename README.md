@@ -128,6 +128,71 @@ blocks install scripts by default, so a fresh install fails at runtime with "Cou
 locate the bindings file". `package.json` already allows it; if you install Warden in
 another project run `npm install-scripts approve better-sqlite3 && npm rebuild better-sqlite3`.
 
+## Run the live demo yourself
+
+You do not need any of this to check the recorded run: `npm test`, `npm run verify` and
+`npm run demo:tamper` work with no wallet and no network.
+
+`demo/run.sh` makes a real Claude Code session and a real Monad transaction, so it needs:
+
+1. **Claude Code** on your PATH (`claude --version`), signed in.
+2. **A Monad testnet wallet** with a little testnet MON. The anchor transaction costs a
+   small fraction of 1 MON.
+3. **Dependencies built**: `npm install` (see the `better-sqlite3` note above).
+
+### 1. Create a throwaway testnet wallet
+
+Use a new key made only for this. Never reuse a key that holds real funds, and never commit
+or share it. From the repository root this writes the key to `.env` (git-ignored, owner
+read-only) and prints only the public address:
+
+```sh
+test -f .env && grep -q '^MONAD_PRIVATE_KEY=' .env && echo "key already set, stop" || \
+node --input-type=module -e "
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
+import { appendFileSync } from 'node:fs'
+const k = generatePrivateKey()
+appendFileSync('.env', 'MONAD_PRIVATE_KEY=' + k + '\n', { mode: 0o600 })
+console.log('Address:', privateKeyToAccount(k).address)
+"
+```
+
+### 2. Get testnet MON from a faucet
+
+Paste the printed address into a Monad testnet faucet:
+
+- https://faucet.monad.xyz (the official faucet)
+- https://www.alchemy.com/faucets/monad-testnet (address only, no account)
+- https://chainstack.com/how-to-get-monad-testnet-tokens/
+
+Faucet limits and sign-in rules change; if one is rate-limited, try another. Network
+details: Monad Testnet, chain id 10143, RPC `https://testnet-rpc.monad.xyz`, explorer
+https://testnet.monadvision.com.
+
+### 3. Check the balance
+
+```sh
+node --env-file=.env --input-type=module -e "
+import { createPublicClient, http, formatEther } from 'viem'
+import { privateKeyToAccount } from 'viem/accounts'
+const a = privateKeyToAccount(process.env.MONAD_PRIVATE_KEY)
+const c = createPublicClient({ transport: http('https://testnet-rpc.monad.xyz') })
+console.log(a.address, 'chain', await c.getChainId(), 'MON', formatEther(await c.getBalance({ address: a.address })))
+"
+```
+
+Expect chain `10143` and a balance above zero.
+
+### 4. Run it
+
+```sh
+./demo/run.sh
+```
+
+This overwrites `demo/ledger.json` and `demo/ledger.anchor.json` with your own run and
+sends a new anchor transaction from your wallet. The contract is shared and keyed by
+publisher address, so your anchor does not touch anyone else's.
+
 ## Demo
 
 `demo/run.sh` runs a real non-interactive Claude Code session whose only tools are MCP
