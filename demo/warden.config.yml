@@ -1,0 +1,29 @@
+version: "2"
+
+meta:
+  environment: "development"
+  sessionApprovalRequired: false
+
+mcpServers:
+  allowed:
+    - name: "filesystem"
+      type: local
+      transport: stdio
+      command: npx
+      args: ["-y", "@modelcontextprotocol/server-filesystem", "."]
+      allowedTools: ["read_file", "list_directory", "write_file"]
+      authRequired: false
+
+policies:
+  - id: "allow-reads"
+    description: "Reading files is allowed"
+    match:
+      tools: ["read_file", "list_directory"]
+      environment: ["development"]
+    action: ALLOW
+
+  - id: "deny-writes"
+    description: "The agent may not modify files"
+    match:
+      tools: ["write_file"]
+    action: DENY

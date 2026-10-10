@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "warden": {
+      "command": "../node_modules/.bin/warden",
+      "args": ["proxy", "--config", "warden.config.yml"]
+    }
+  }
+}
