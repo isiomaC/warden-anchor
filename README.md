@@ -49,8 +49,7 @@ TODO. Must be runnable by a third party from a clean machine.
 
 ## AI tooling disclosure
 
-This project is built with AI coding assistance (Claude Code). The author reviews and
-commits all changes. Commit history shows the work as it landed.
+This project is built with AI coding assistance (Claude Code).
 
 ## License
 
