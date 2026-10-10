@@ -1,0 +1,89 @@
+[
+  {
+    "ledgerFormatVersion": 1,
+    "canonicalizationVersion": 1,
+    "hashAlgorithm": "sha256",
+    "previousHash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "event": {
+      "eventId": "sample-0",
+      "eventType": "tool.allowed",
+      "occurredAt": "2026-10-10T12:00:00.000Z",
+      "actor": "claude-code",
+      "payload": {
+        "tool": "Read",
+        "path": "README.md"
+      }
+    },
+    "hash": "bc08da6a4fe8203cb0bb9e54f6835225eb0a9f27999d6d54308d6060e5d30400"
+  },
+  {
+    "ledgerFormatVersion": 1,
+    "canonicalizationVersion": 1,
+    "hashAlgorithm": "sha256",
+    "previousHash": "bc08da6a4fe8203cb0bb9e54f6835225eb0a9f27999d6d54308d6060e5d30400",
+    "event": {
+      "eventId": "sample-1",
+      "eventType": "tool.allowed",
+      "occurredAt": "2026-10-10T12:00:01.000Z",
+      "actor": "claude-code",
+      "payload": {
+        "tool": "Bash",
+        "command": "npm test"
+      }
+    },
+    "hash": "420bb81086e4ceda9da874b29fec3749e17eb365400ff37c2d8a74179b1b0782"
+  },
+  {
+    "ledgerFormatVersion": 1,
+    "canonicalizationVersion": 1,
+    "hashAlgorithm": "sha256",
+    "previousHash": "420bb81086e4ceda9da874b29fec3749e17eb365400ff37c2d8a74179b1b0782",
+    "event": {
+      "eventId": "sample-2",
+      "eventType": "tool.denied",
+      "occurredAt": "2026-10-10T12:00:02.000Z",
+      "actor": "claude-code",
+      "payload": {
+        "tool": "Bash",
+        "command": "rm -rf /",
+        "rule": "deny-destructive-shell"
+      }
+    },
+    "hash": "15975a8004a05f99ba4971fe2f2e3d3c526d416e9bac552fa3b9e2a05d52a59e"
+  },
+  {
+    "ledgerFormatVersion": 1,
+    "canonicalizationVersion": 1,
+    "hashAlgorithm": "sha256",
+    "previousHash": "15975a8004a05f99ba4971fe2f2e3d3c526d416e9bac552fa3b9e2a05d52a59e",
+    "event": {
+      "eventId": "sample-3",
+      "eventType": "tool.denied",
+      "occurredAt": "2026-10-10T12:00:03.000Z",
+      "actor": "claude-code",
+      "payload": {
+        "tool": "Write",
+        "path": ".env",
+        "rule": "deny-secret-files"
+      }
+    },
+    "hash": "af251995f286cc13c832b253e0e6a5cf3274b0f3f09b72644ecb2c4b79a98862"
+  },
+  {
+    "ledgerFormatVersion": 1,
+    "canonicalizationVersion": 1,
+    "hashAlgorithm": "sha256",
+    "previousHash": "af251995f286cc13c832b253e0e6a5cf3274b0f3f09b72644ecb2c4b79a98862",
+    "event": {
+      "eventId": "sample-4",
+      "eventType": "tool.allowed",
+      "occurredAt": "2026-10-10T12:00:04.000Z",
+      "actor": "claude-code",
+      "payload": {
+        "tool": "Edit",
+        "path": "src/index.ts"
+      }
+    },
+    "hash": "fe54512c00b6a72059eb702b716ba62e1b331052eb6f29cdfed1510ce777f9c1"
+  }
+]

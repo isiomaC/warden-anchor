@@ -1,0 +1,11 @@
+{
+  "chainId": 10143,
+  "contract": "0x8494a7486442c17bba53cf6aca4acb12c3057cb0",
+  "publisher": "0xCefe8D12e6d157905f8cb0e2A8DCf5226f48AE85",
+  "logName": "decisions",
+  "logId": "0x9d214240b84c4670e82b0f52660ece438f13fb34e98dd1284a041ab69b83f543",
+  "entryCount": 5,
+  "headHash": "0xfe54512c00b6a72059eb702b716ba62e1b331052eb6f29cdfed1510ce777f9c1",
+  "txHash": "0x83e3058598d1c586b20a76533807d911a985dec39a982155d8f8b7933bec6321",
+  "blockNumber": 69799982
+}
