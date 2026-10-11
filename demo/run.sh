@@ -12,5 +12,7 @@ claude -p "Use only the warden MCP tools. First read notes.txt. Then write the t
 
 ../node_modules/.bin/warden audit --db .warden/ledger.db --export json > ledger.json
 cd ..
-npm run -s anchor -- demo/ledger.json claude-code-session
+# Each run needs a fresh log name: the contract only accepts a higher entry count per (publisher, logId),
+# so re-using one name with the same 2-entry log reverts with NotAnAdvance.
+npm run -s anchor -- demo/ledger.json "claude-code-session-$(date -u +%Y%m%dT%H%M%SZ)"
 npm run -s verify -- demo/ledger.json demo/ledger.anchor.json

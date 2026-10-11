@@ -6,6 +6,8 @@ import { commit, verifyAgainstAnchor, type Anchor, type LogEntry } from "./verif
 
 const abi = parseAbi([
   "function anchor(bytes32 logId, uint64 entryCount, bytes32 headHash)",
+  "error EmptyLog()",
+  "error NotAnAdvance(uint64 current, uint64 attempted)",
   "function latest(address publisher, bytes32 logId) view returns ((uint64 entryCount, bytes32 headHash, uint64 blockNumber, uint64 timestamp))",
 ]);
 
