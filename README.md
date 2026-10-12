@@ -59,7 +59,7 @@ All code in this repository is written during the hackathon window.
 | Contract | [`0x8494a7486442c17bba53cf6aca4acb12c3057cb0`](https://testnet.monadvision.com/address/0x8494a7486442c17bba53cf6aca4acb12c3057cb0) |
 | Deployment tx | [`0xc8dbdb22...c4043d6`](https://testnet.monadvision.com/tx/0xc8dbdb228231de8ce4d621bbfa1affa7278a583022915f5162c4400c4c4043d6) |
 | Deploy block | 69798973 |
-| Anchor tx, live Claude Code run (the one in the demo video) | [`0x896e9c9c...d2edea9`](https://testnet.monadvision.com/tx/0x896e9c9cef527a880509fa23bf607325c1f228c9e6add76e1bb913954d2edea9) (block 70123567, 2 entries) |
+| Anchor tx, live Claude Code run (the one in the demo video) | [`0xa5720639...ec52708`](https://testnet.monadvision.com/tx/0xa572063908ecfa135a651a9b1abca61d97238ee4e380985d0b84281d4ec52708) (block 70478583, 2 entries) |
 | Deployer | `0xcefe8d12e6d157905f8cb0e2a8dcf5226f48ae85` |
 
 The contract stores, per publisher and log id, the entry count and head hash of a
