@@ -6,6 +6,8 @@ Built for the Monad Metropolis hackathon, Track 04 (Trust, Identity and AI infra
 Status: working prototype on Monad testnet. Contract, anchoring CLI, offline verifier and a
 recorded live run are in this repository.
 
+Live verifier (runs in your browser, no wallet): https://isiomac.github.io/warden-anchor/
+
 History note: this repository was created on 10 Oct 2026 for the hackathon, so every commit
 here is inside the build window. The pre-existing foundation, Warden, has its own earlier
 history in https://github.com/isiomaC/warden and is consumed here as a pinned dependency.

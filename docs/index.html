@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>warden-anchor verifier</title>
+<meta name="description" content="Check an AI agent's policy decision log against the head anchored on Monad testnet. Runs in your browser, no wallet or network needed.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ground: #E3E5E2;
+  --panel: #EEF0ED;
+  --ink: #14181A;
+  --ink-2: #474F53;
+  --rule: #B4BAB7;
+  --mark: #F0357F;
+  --mark-ink: #14181A;
+  --ok: #0B7447;
+  --bad: #BE231B;
+  --on-fill: #FFFFFF;
+  --sel: #F0357F55;
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --r: 6px;
+  --sans: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --cond: "Barlow Condensed", "Barlow", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #14171A;
+    --panel: #1B1F22;
+    --ink: #E9ECE8;
+    --ink-2: #A5ADB0;
+    --rule: #353B3F;
+    --mark: #FF5C9E;
+    --ok: #3DDC97;
+    --bad: #FF6F61;
+    --on-fill: #0D1012;
+    --sel: #FF5C9E66;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #14171A; --panel: #1B1F22; --ink: #E9ECE8; --ink-2: #A5ADB0; --rule: #353B3F;
+  --mark: #FF5C9E; --ok: #3DDC97; --bad: #FF6F61; --on-fill: #0D1012; --sel: #FF5C9E66;
+}
+* { box-sizing: border-box; }
+html { color-scheme: light dark; scrollbar-color: var(--rule) var(--ground); }
+body {
+  margin: 0; background: var(--ground); color: var(--ink);
+  font: 400 16px/1.5 var(--sans); -webkit-font-smoothing: antialiased;
+  min-height: 100dvh; display: flex; flex-direction: column;
+}
+::selection { background: var(--sel); color: var(--ink); }
+input, textarea, button { caret-color: var(--mark); font: inherit; color: inherit; }
+a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: var(--ink-2); }
+a:hover { text-decoration-color: var(--mark); text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 3px; }
+.mono, code { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* Shell */
+.bar { border-bottom: 1px solid var(--rule); background: var(--panel); }
+.bar-in { max-width: 1200px; margin: 0 auto; padding: 0 20px; height: 60px; display: flex; align-items: center; gap: 16px; }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; margin-right: auto; }
+.brand img { width: 32px; height: 32px; border-radius: 4px; display: block; }
+.brand span { font: 600 20px/1 var(--cond); letter-spacing: .04em; text-transform: lowercase; }
+.bar nav { display: flex; gap: 20px; font-size: 15px; }
+.bar nav a { text-decoration: none; color: var(--ink-2); padding: 6px 0; border-bottom: 2px solid transparent; transition: color 150ms ease, border-color 150ms ease; }
+.bar nav a:hover { color: var(--ink); border-color: var(--mark); }
+main { flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: 36px 20px 56px; }
+h1 { font: 600 clamp(30px, 4.2vw, 46px)/1.04 var(--cond); letter-spacing: .005em; margin: 0 0 10px; text-wrap: balance; }
+.lede { margin: 0 0 32px; max-width: 62ch; color: var(--ink-2); font-size: 17px; }
+
+.work { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 20px; align-items: start; }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: var(--r); }
+.controls { padding: 20px; display: grid; gap: 24px; }
+fieldset { border: 0; margin: 0; padding: 0; min-inline-size: 0; }
+legend { font: 600 13px/1 var(--cond); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); padding: 0; margin-bottom: 12px; }
+
+.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--rule); border-radius: var(--r); overflow: hidden; }
+.seg label { position: relative; cursor: pointer; text-align: center; padding: 9px 8px; font-weight: 500; font-size: 15px; border-right: 1px solid var(--rule); transition: background-color 150ms ease; }
+.seg label:last-child { border-right: 0; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label:has(input:checked) { background: var(--ink); color: var(--ground); }
+.seg label:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: -4px; }
+@media (hover: hover) and (pointer: fine) { .seg label:not(:has(input:checked)):hover { background: color-mix(in srgb, var(--ink) 8%, transparent); } }
+
+.cases { display: grid; gap: 8px; }
+.case { display: grid; grid-template-columns: 20px 1fr; gap: 10px; padding: 10px 12px; border: 1px solid var(--rule); border-radius: var(--r); cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease, transform 160ms var(--ease); }
+.case:active { transform: scale(0.99); }
+.case input { appearance: none; margin: 2px 0 0; width: 16px; height: 16px; border: 1.5px solid var(--ink-2); border-radius: 50%; display: grid; place-content: center; }
+.case input::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--mark); transform: scale(0); transition: transform 150ms var(--ease); }
+.case input:checked { border-color: var(--ink); }
+.case input:checked::after { transform: scale(1); }
+.case:has(input:checked) { border-color: var(--ink); background: color-mix(in srgb, var(--mark) 12%, var(--panel)); }
+.case:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 2px; }
+.case b { display: block; font-weight: 600; font-size: 15px; line-height: 1.25; }
+.case small { display: block; color: var(--ink-2); font-size: 13.5px; line-height: 1.35; margin-top: 2px; }
+@media (hover: hover) and (pointer: fine) { .case:hover { border-color: var(--ink-2); } }
+
+.paste { display: none; gap: 10px; }
+.paste.on { display: grid; }
+.paste label { font-size: 14px; font-weight: 500; }
+textarea { width: 100%; min-height: 108px; resize: vertical; background: var(--ground); border: 1px solid var(--rule); border-radius: var(--r); padding: 10px 12px; font: 400 12.5px/1.45 var(--mono); }
+textarea:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.err { color: var(--bad); font-size: 14px; min-height: 1.4em; margin: 0; }
+.btn { appearance: none; border: 0; cursor: pointer; background: var(--mark); color: var(--mark-ink); font-weight: 600; padding: 11px 16px; border-radius: var(--r); transition: transform 160ms var(--ease), filter 150ms ease; }
+.btn:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { .btn:hover { filter: brightness(1.06); } }
+.cases[hidden], .src-recorded[hidden] { display: none; }
+
+/* Result */
+.result { display: grid; gap: 20px; min-width: 0; }
+.verdict { display: grid; grid-template-columns: auto 1fr; gap: 6px 20px; align-items: center; padding: 20px; border-radius: var(--r); background: var(--ink); color: var(--ground); }
+.verdict[data-ok="true"] { background: var(--ok); color: var(--on-fill); }
+.verdict[data-ok="false"] { background: var(--bad); color: var(--on-fill); }
+.code { font: 600 clamp(28px, 4vw, 40px)/1 var(--cond); letter-spacing: .04em; }
+.verdict p { margin: 0; font-size: 16px; line-height: 1.4; max-width: 64ch; }
+.verdict .detail { grid-column: 2; font: 400 13px/1.45 var(--mono); opacity: .92; overflow-wrap: anywhere; }
+.verdict.pop { animation: pop 260ms var(--ease); }
+@keyframes pop { from { opacity: .0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.trav { padding: 0; overflow: hidden; }
+.trav h2 { font: 600 13px/1 var(--cond); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); margin: 0; padding: 16px 20px; border-bottom: 1px solid var(--rule); }
+.trav-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th { text-align: left; font-weight: 500; font-size: 13px; color: var(--ink-2); padding: 10px 12px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+td { padding: 0 12px; height: 56px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+th:first-child, td:first-child { width: 56px; min-width: 56px; padding: 0; }
+.rail { position: relative; height: 56px; }
+.rail::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--ink-2);
+  transform-origin: top; transform: scaleY(var(--draw, 1)); }
+tr:first-child .rail::before { top: 50%; }
+.stn { position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; background: var(--ground); border: 2px solid var(--ink); border-radius: 2px; }
+tr[data-st="bad"] .stn { border-color: var(--bad); background: var(--bad); }
+tr[data-st="bad"] .rail::before { background: var(--bad); }
+tr[data-st="skip"] .rail::before { width: 0; background: none; border-left: 2px dashed var(--ink-2); }
+tr[data-st="skip"] .stn { border-style: dashed; border-color: var(--ink-2); }
+tr[data-st="missing"] td { color: var(--bad); }
+tr[data-st="missing"] .rail::before { width: 0; background: none; border-left: 2px dashed var(--bad); }
+tr[data-st="missing"] .stn { border: 2px dashed var(--bad); background: transparent; }
+.bm .rail::before { bottom: 50%; }
+#rows[data-closed="false"] .bm .rail::before { width: 0; background: none; border-left: 2px dashed var(--bad); }
+#rows[data-closed="false"] .disc { border-color: var(--bad); box-shadow: 0 0 0 3px var(--bad); }
+#rows[data-closed="true"] .disc { box-shadow: 0 0 0 3px var(--ok); }
+.disc { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; background: var(--mark); border: 2px solid var(--ink); }
+.disc::before, .disc::after { content: ""; position: absolute; background: var(--ink); }
+.disc::before { left: 50%; top: 3px; bottom: 3px; width: 2px; margin-left: -1px; }
+.disc::after { top: 50%; left: 3px; right: 3px; height: 2px; margin-top: -1px; }
+.bm td { background: color-mix(in srgb, var(--mark) 10%, transparent); }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 13.5px; }
+.dec { font-weight: 600; font-size: 13px; letter-spacing: .06em; padding: 3px 8px; border-radius: 3px; border: 1px solid currentColor; display: inline-block; }
+.dec.allow { color: var(--ok); }
+.dec.deny { color: var(--bad); }
+.lnk { font-size: 13.5px; font-weight: 500; }
+.lnk.good { color: var(--ok); }
+.lnk.fail { color: var(--bad); }
+.lnk.na { color: var(--ink-2); }
+.tool { overflow: hidden; text-overflow: ellipsis; max-width: 30ch; }
+
+.close { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--rule); }
+.close > div { padding: 16px 20px; min-width: 0; }
+.close > div + div { border-left: 1px solid var(--rule); }
+.close dt { font-size: 13px; color: var(--ink-2); margin: 0 0 4px; }
+.close dd { margin: 0; font-family: var(--mono); font-size: 13.5px; overflow-wrap: anywhere; }
+.close dd.eq { color: var(--ok); }
+.close dd.ne { color: var(--bad); }
+.facts { padding: 16px 20px; display: flex; flex-wrap: wrap; gap: 6px 24px; font-size: 14.5px; color: var(--ink-2); border-top: 1px solid var(--rule); }
+.facts a { color: var(--ink); }
+
+.scope { margin-top: 28px; max-width: 74ch; color: var(--ink-2); font-size: 15px; }
+.scope h2 { font: 600 20px/1.2 var(--cond); letter-spacing: .04em; color: var(--ink); margin: 0 0 6px; }
+.scope p { margin: 0 0 10px; }
+footer { border-top: 1px solid var(--rule); background: var(--panel); }
+footer div { max-width: 1200px; margin: 0 auto; padding: 18px 20px; font-size: 14px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 6px 20px; }
+
+@media (max-width: 880px) {
+  .work { grid-template-columns: 1fr; }
+  .bar nav a:nth-child(n+3) { display: none; }
+}
+@media (max-width: 640px) {
+  th.t, td.t, th.h, td.h { display: none; }
+  .close { grid-template-columns: 1fr; }
+  .close > div + div { border-left: 0; border-top: 1px solid var(--rule); }
+  .verdict { grid-template-columns: 1fr; }
+  .verdict .detail { grid-column: 1; }
+  main { padding-top: 26px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <a class="brand" href="./" aria-label="warden-anchor home"><img src="logo.svg" alt="" width="32" height="32"><span>warden-anchor</span></a>
+    <nav aria-label="Project links">
+      <a href="https://testnet.monadvision.com/address/0x8494a7486442c17bba53cf6aca4acb12c3057cb0">Contract</a>
+      <a href="https://testnet.monadvision.com/tx/0xa572063908ecfa135a651a9b1abca61d97238ee4e380985d0b84281d4ec52708">Anchor tx</a>
+      <a href="https://github.com/isiomaC/warden-anchor">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <h1>Verify a policy log against its anchor</h1>
+  <p class="lede">A real Claude Code session, blocked by Warden's policy proxy, is checked here against the head published on Monad testnet. Break the log and see which check catches it.</p>
+
+  <div class="work">
+    <section class="panel controls" aria-label="Log and tamper controls">
+      <fieldset>
+        <legend>Log</legend>
+        <div class="seg">
+          <label><input type="radio" name="src" value="recorded" checked><span>Recorded run</span></label>
+          <label><input type="radio" name="src" value="paste"><span>Paste your own</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="src-recorded" id="recorded">
+        <legend>Tamper with it</legend>
+        <div class="cases">
+          <label class="case"><input type="radio" name="case" value="none" checked>
+            <span><b>Leave it untouched</b><small>The log exactly as Warden wrote it.</small></span></label>
+          <label class="case"><input type="radio" name="case" value="flip">
+            <span><b>Change the DENY to ALLOW</b><small>Edit one decision, leave the hashes alone.</small></span></label>
+          <label class="case"><input type="radio" name="case" value="rehash">
+            <span><b>Change it, then re-hash the chain</b><small>The log is internally consistent again. Only the anchor can tell.</small></span></label>
+          <label class="case"><input type="radio" name="case" value="cut">
+            <span><b>Remove the denial entry</b><small>Cut the end off the log.</small></span></label>
+        </div>
+      </fieldset>
+
+      <div class="paste" id="paste">
+        <label for="ledger">Ledger JSON (the export from <code>warden audit --export json</code>, or its entries array)</label>
+        <textarea id="ledger" spellcheck="false" placeholder='{"entries":[ ... ]}'></textarea>
+        <label for="anchor">Anchor record JSON</label>
+        <textarea id="anchor" spellcheck="false"></textarea>
+        <p class="err" id="err" role="alert"></p>
+        <button class="btn" id="go" type="button">Verify pasted log</button>
+      </div>
+    </section>
+
+    <div class="result">
+      <section class="verdict pop" id="verdict" data-ok="" aria-live="polite" aria-atomic="true">
+        <span class="code" id="vcode">Checking</span>
+        <p id="vmsg">Recomputing the hash chain in your browser.</p>
+        <span class="detail" id="vdetail"></span>
+      </section>
+
+      <section class="panel trav" aria-labelledby="trav-h">
+        <h2 id="trav-h">Traverse: log entries closing on the anchor</h2>
+        <div class="trav-wrap">
+          <table>
+            <thead><tr><th><span class="sr" style="position:absolute;left:-9999px">Position</span></th><th>Entry</th><th class="t">Time (UTC)</th><th>Tool</th><th>Decision</th><th class="h">Hash</th><th>Link</th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <dl class="close" id="close"></dl>
+        <div class="facts">
+          <span>Contract <a class="mono" href="https://testnet.monadvision.com/address/0x8494a7486442c17bba53cf6aca4acb12c3057cb0">0x8494...cb0</a></span>
+          <span>Monad testnet, chain id 10143</span>
+          <span>Check runs offline, no wallet or RPC</span>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="scope" aria-labelledby="scope-h">
+    <h2 id="scope-h">What this proves, and what it does not</h2>
+    <p>The anchor proves the log head existed at that block. It does not prove the host was honest before anchoring, and entries the proxy never saw are not covered.</p>
+    <p>Warden enforces MCP tool calls routed through its proxy. Claude Code's own native tools are outside that boundary, so the demo switches them off. The contract is unaudited and testnet-only.</p>
+  </section>
+</main>
+
+<footer>
+  <div>
+    <span>MIT licensed. Source on <a href="https://github.com/isiomaC/warden-anchor">GitHub</a>.</span>
+    <span>Built with AI coding assistance (Claude Code).</span>
+    <span>Warden 0.2.8 is a pre-existing open source dependency.</span>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script>
+(() => {
+  "use strict";
+  const D = window.WARDEN_ANCHOR_DATA;
+  const ZERO = "0".repeat(64);
+  const $ = (id) => document.getElementById(id);
+  const enc = new TextEncoder();
+  const bare = (h) => String(h).replace(/^0x/, "").toLowerCase();
+  const short = (h) => { const b = bare(h); return b.length > 20 ? `${b.slice(0, 10)}...${b.slice(-6)}` : b; };
+
+  async function sha256(s) {
+    const buf = await crypto.subtle.digest("SHA-256", enc.encode(s));
+    return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+  // Same field order and layout as Warden 0.2.8's ledger hash (see src/verify.ts).
+  const entryHash = (e) => sha256(JSON.stringify({
+    id: e.id, timestamp: e.timestamp, sessionId: e.sessionId, taskId: e.taskId, tool: e.tool,
+    toolInput: JSON.stringify(e.toolInput), trustLevel: e.trustLevel, trustSource: e.trustSource,
+    policyRulesMatched: e.policyRulesMatched, decision: e.decision, decisionReason: e.decisionReason,
+    previousHash: e.previousHash,
+  }));
+
+  async function rehash(log) {
+    let prev = ZERO; const out = [];
+    for (const e of log) {
+      const x = { ...e, previousHash: prev, previousEntryHash: prev };
+      x.hash = await entryHash(x); prev = x.hash; out.push(x);
+    }
+    return out;
+  }
+
+  // Mirrors verifyAgainstAnchor in src/verify.ts, and also reports per-entry state for the traverse.
+  async function verify(entries, anchor) {
+    if (!entries.length) return { ok: false, reason: "EMPTY", detail: "The log has no entries.", rows: [], computedHead: null };
+    const rows = []; let prev = ZERO; let broken = -1; let why = "";
+    for (let i = 0; i < entries.length; i++) {
+      const e = entries[i];
+      const linkOk = e.previousHash === prev;
+      const expected = await entryHash(e);
+      const hashOk = e.hash === expected;
+      if (broken < 0 && (!linkOk || !hashOk)) { broken = i; why = !linkOk ? "BROKEN_LINK" : "HASH_MISMATCH"; }
+      rows.push({ e, linkOk, hashOk, state: broken >= 0 && broken < i ? "skip" : (linkOk && hashOk ? "ok" : "bad") });
+      prev = e.hash;
+    }
+    const last = entries[entries.length - 1];
+    const base = { rows, computedHead: bare(last.hash) };
+    if (broken >= 0) return { ...base, ok: false, reason: "CHAIN_BROKEN", detail: `${why} at entry ${broken + 1}`, brokenAt: broken };
+    if (entries.length < anchor.entryCount) return { ...base, ok: false, reason: "TRUNCATED", detail: `log has ${entries.length} ${entries.length === 1 ? "entry" : "entries"}, ${anchor.entryCount} were anchored`, missing: anchor.entryCount - entries.length };
+    const at = entries[anchor.entryCount - 1];
+    if (bare(at.hash) !== bare(anchor.headHash)) return { ...base, computedHead: bare(at.hash), ok: false, reason: "REWRITTEN", detail: `entry ${anchor.entryCount} hash ${bare(at.hash)} does not match anchored head ${bare(anchor.headHash)}` };
+    return { ...base, computedHead: bare(at.hash), ok: true, reason: "OK", detail: `${entries.length} entries, anchored at ${anchor.entryCount}, head matches` };
+  }
+
+  const MSG = {
+    OK: (r, a) => `The log matches the anchor. Hash chain intact, and entry ${a.entryCount} hashes to the head published on Monad.`,
+    CHAIN_BROKEN: (r) => `An entry was edited. Entry ${r.brokenAt + 1} no longer hashes to its recorded value, so everything after it is untrusted.`,
+    REWRITTEN: (r, a) => `The chain is internally consistent, but entry ${a.entryCount} does not hash to the anchored head. The whole chain was re-hashed after an edit, and only the anchor can catch that.`,
+    TRUNCATED: (r, a) => `The log has ${r.rows.length} ${r.rows.length === 1 ? "entry" : "entries"}, but ${a.entryCount} were anchored. Entries were cut from the end.`,
+    EMPTY: () => "There is nothing to verify.",
+  };
+
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const baseName = (p) => String(p || "").split(/[\\/]/).pop();
+  const toolLabel = (e) => {
+    const t = String(e.tool || "").replace(/^mcp\.[^.]+\./, "");
+    const p = e.toolInput && (e.toolInput.path || e.toolInput.file_path);
+    return p ? `${t} ${baseName(p)}` : t;
+  };
+  const time = (ts) => (ts ? String(ts).replace("T", " ").replace(/\..*$/, "").replace("Z", "") : "");
+
+  function render(r, anchor) {
+    const v = $("verdict");
+    v.dataset.ok = String(r.ok);
+    $("vcode").textContent = r.reason;
+    $("vmsg").textContent = MSG[r.reason](r, anchor);
+    $("vdetail").textContent = r.detail;
+    v.classList.remove("pop"); void v.offsetWidth; v.classList.add("pop");
+
+    const body = [];
+    r.rows.forEach(({ e, linkOk, hashOk, state }, i) => {
+      const dec = String(e.decision || "").toUpperCase();
+      const link = state === "skip" ? ["na", "not checked"] : linkOk && hashOk ? ["good", "linked"] : [ "fail", !linkOk ? "link broken" : "hash differs" ];
+      body.push(`<tr data-st="${state}" style="--draw:1">
+        <td><div class="rail"><i class="stn"></i></div></td>
+        <td class="num">${i + 1}</td>
+        <td class="t num">${esc(time(e.timestamp))}</td>
+        <td class="tool">${esc(toolLabel(e))}</td>
+        <td><span class="dec ${dec === "DENY" ? "deny" : "allow"}">${esc(dec)}</span></td>
+        <td class="h num" title="${esc(e.hash)}">${esc(short(e.hash))}</td>
+        <td><span class="lnk ${link[0]}">${link[1]}</span></td></tr>`);
+    });
+    if (r.reason === "TRUNCATED") {
+      for (let k = 0; k < r.missing; k++) {
+        body.push(`<tr data-st="missing"><td><div class="rail"><i class="stn"></i></div></td><td class="num">${r.rows.length + k + 1}</td><td class="t"></td><td colspan="4">Anchored but missing from this log</td></tr>`);
+      }
+    }
+    body.push(`<tr class="bm"><td><div class="rail"><i class="disc"></i></div></td><td class="num">${anchor.entryCount}</td><td class="t"></td><td colspan="4"><b>Anchor</b>, block ${esc(anchor.blockNumber ?? "")} on Monad testnet</td></tr>`);
+    $("rows").dataset.closed = String(r.ok);
+    $("rows").innerHTML = body.join("");
+
+    const eq = r.computedHead && bare(r.computedHead) === bare(anchor.headHash);
+    $("close").innerHTML = `
+      <div><dt>Anchored head (entry ${esc(anchor.entryCount)})</dt><dd>0x${esc(bare(anchor.headHash))}</dd></div>
+      <div><dt>Computed head from this log</dt><dd class="${eq ? "eq" : "ne"}">${r.computedHead ? "0x" + esc(r.computedHead) : "none"}${eq ? " (match)" : " (differs)"}</dd></div>`;
+
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      document.querySelectorAll("#rows tr").forEach((tr, i) => {
+        tr.animate([{ opacity: 0.0, transform: "translateY(4px)" }, { opacity: 1, transform: "none" }],
+          { duration: 220, delay: i * 70, easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "backwards" });
+      });
+    }
+  }
+
+  async function runRecorded() {
+    const kind = document.querySelector('input[name="case"]:checked').value;
+    let log = structuredClone(D.entries);
+    const iDeny = log.findIndex((e) => e.decision === "DENY");
+    if (kind === "flip") log[iDeny].decision = "ALLOW";
+    if (kind === "rehash") { log[iDeny].decision = "ALLOW"; log = await rehash(log); }
+    if (kind === "cut") log = log.slice(0, iDeny);
+    render(await verify(log, D.anchor), D.anchor);
+  }
+
+  async function runPasted() {
+    const err = $("err"); err.textContent = "";
+    try {
+      const l = JSON.parse($("ledger").value);
+      const a = JSON.parse($("anchor").value);
+      const entries = Array.isArray(l) ? l : l.entries;
+      if (!Array.isArray(entries)) throw new Error("Ledger JSON needs an entries array.");
+      if (!a || typeof a.entryCount !== "number" || !a.headHash) throw new Error("Anchor record needs entryCount and headHash.");
+      render(await verify(entries, a), a);
+    } catch (x) { err.textContent = x.message || String(x); }
+  }
+
+  function setSource() {
+    const paste = document.querySelector('input[name="src"]:checked').value === "paste";
+    $("paste").classList.toggle("on", paste);
+    $("recorded").hidden = paste;
+    paste ? runPasted() : runRecorded();
+  }
+
+  $("anchor").value = JSON.stringify(D.anchor, null, 2);
+  $("ledger").value = JSON.stringify({ entries: D.entries }, null, 2);
+  document.querySelectorAll('input[name="src"]').forEach((i) => i.addEventListener("change", setSource));
+  document.querySelectorAll('input[name="case"]').forEach((i) => i.addEventListener("change", runRecorded));
+  $("go").addEventListener("click", runPasted);
+  if (!window.crypto || !crypto.subtle) {
+    $("vcode").textContent = "Unavailable";
+    $("vmsg").textContent = "This browser has no WebCrypto, which the verifier needs. Open the page over HTTPS in a current browser.";
+  } else {
+    runRecorded();
+  }
+})();
+</script>
+</body>
+</html>
