@@ -6,7 +6,7 @@ Built for the Monad Metropolis hackathon, Track 04 (Trust, Identity and AI infra
 Status: working prototype on Monad testnet. Contract, anchoring CLI, offline verifier and a
 recorded live run are in this repository.
 
-Live verifier (runs in your browser, no wallet): https://isiomac.github.io/warden-anchor/
+**Live verifier:** https://isiomac.github.io/warden-anchor/ (runs in your browser, no wallet or network; loads the recorded run and lets you tamper with it).
 
 History note: this repository was created on 10 Oct 2026 for the hackathon, so every commit
 here is inside the build window. The pre-existing foundation, Warden, has its own earlier
@@ -40,8 +40,8 @@ This repository does not contain Warden. It consumes it as a dependency.
 Warden is the policy engine, MCP proxy and unkeyed hash-chained ledger. The `warden proxy`
 and `warden audit` commands used by the demo come from its CLI. Both packages were
 published before the hackathon window and live in their own open source repository.
-Everything under `contracts/`, `src/`, `test/`, `scripts/`, `examples/` and `demo/` in this
-repository is new work.
+Everything under `contracts/`, `src/`, `test/`, `scripts/`, `examples/`, `demo/`, `docs/` and
+`assets/` in this repository is new work.
 
 ## What is new in this repository
 
@@ -51,6 +51,7 @@ All code in this repository is written during the hackathon window.
 - Anchoring CLI that commits a Warden decision log's head to the contract (`src/cli.ts anchor`)
 - Offline verifier that detects edits, full re-hash rewrites and truncation (`src/verify.ts`, `src/cli.ts verify`)
 - A runnable demo: a real Claude Code session blocked by Warden, its ledger anchored on Monad and verified (`demo/`)
+- A static in-browser verifier (`docs/`, served by GitHub Pages) that re-hashes the recorded ledger with WebCrypto and checks it against the anchor, with the three tamper cases and a paste box
 
 ## Monad integration
 
@@ -88,6 +89,7 @@ Claude Code ──MCP tool call──> warden proxy ──ALLOW──> upstream 
                                               WardenAnchor on Monad testnet
                                                               │
                           npm run verify: offline, log + anchor record -> OK / FAIL
+                          docs/index.html: the same check, in the browser
 ```
 
 Warden governs MCP tool calls that pass through its proxy. Claude Code's own native
@@ -103,6 +105,7 @@ verifies. The head published on Monad does not move, so both are caught.
 - Node.js 22.18+, TypeScript (run directly, no build step)
 - Solidity 0.8.28, Hardhat 3, `node:test`
 - viem for chain access
+- Static HTML, CSS and vanilla JS with WebCrypto for the browser verifier (`docs/`, no build step)
 - Monad testnet (chain id 10143)
 - `@stlw/warden` and `@stlw/warden-cli` 0.2.8 for policy enforcement and the ledger
 
@@ -120,6 +123,9 @@ npm run demo:tamper            # replays untouched, flipped decision and dropped
 
 `verify` is offline. It checks a log against an anchor record and prints `OK`, or
 `FAIL` with `CHAIN_BROKEN`, `REWRITTEN` or `TRUNCATED`.
+
+The same check runs in the browser at https://isiomac.github.io/warden-anchor/. To serve it
+locally, open `docs/index.html` (it needs no server).
 
 To anchor a log yourself, put a funded Monad testnet key in `.env` as
 `MONAD_PRIVATE_KEY=0x...` and run `npm run anchor -- path/to/log.json`. It verifies the
@@ -216,6 +222,8 @@ offline. Recorded output of one run is in `demo/`:
   check which publisher address the anchor record names.
 - Warden governs MCP tool calls routed through `warden proxy`. Claude Code's native tools
   and HTTP hooks are outside that boundary, as Warden's own documentation states.
+- The browser verifier uses an anchor record embedded in the page (or one you paste). It does
+  not query the chain; confirm the record's tx on the explorer.
 - The verifier mirrors the hash layout of Warden 0.2.8's SQLite ledger. Upgrade Warden and
   this check together.
 
