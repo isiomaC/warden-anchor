@@ -1,6 +1,6 @@
-<img src="assets/logo.png" alt="warden-anchor logo" width="88" height="88" align="right">
-
 # warden-anchor
+
+<img src="assets/logo.png" alt="warden-anchor logo" width="72" height="72">
 
 Proof that an AI agent's MCP tool calls were policy-checked, and that the record was not altered, anchored on Monad.
 
